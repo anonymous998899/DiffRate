@@ -104,3 +104,6 @@ python -m torch.distributed.launch \
 --model vit_deit_small_patch16_224 \
 --target_flops 2.9
 ```
+
+## Visualization
+See `visualization.ipynb` for more details.

@@ -48,13 +48,15 @@ class DiffRateBlock(Block):
         cls_attn = attn[:, :, 0, 1:]
         cls_attn = cls_attn.mean(dim=1)  # [B, N-1]
         _, idx = torch.sort(cls_attn, descending=True)
-        cls_index = torch.zeros((B,1)).cuda().long()
+        cls_index = torch.zeros((B,1), device=idx.device).long()
         idx = torch.cat((cls_index, idx+1), dim=1)
         
         # sorting
         x = torch.gather(x, dim=1, index=idx.unsqueeze(-1).expand(-1, -1, x.shape[-1]))
         self._diffrate_info["size"] = torch.gather(self._diffrate_info["size"], dim=1, index=idx.unsqueeze(-1))
         mask = torch.gather( mask, dim=1, index=idx)
+        if self._diffrate_info["trace_source"]:
+            self._diffrate_info["source"] = torch.gather(self._diffrate_info["source"], dim=1, index=idx.unsqueeze(-1).expand(-1, -1, self._diffrate_info["source"].shape[-1]))
 
         
         if self.training:
@@ -93,6 +95,9 @@ class DiffRateBlock(Block):
             prune_kept_num = self.prune_ddp.kept_token_number
             x = x[:, :prune_kept_num]
             self._diffrate_info["size"] = self._diffrate_info["size"][:, :prune_kept_num]
+            if self._diffrate_info["trace_source"]:
+                self._diffrate_info["source"] = self._diffrate_info["source"][:, :prune_kept_num]
+                
             
             # merging
             merge_kept_num = self.merge_ddp.kept_token_number
@@ -102,6 +107,8 @@ class DiffRateBlock(Block):
                 # optimize proportional attention in ToMe by considering similarity
                 self._diffrate_info["size"] = torch.cat((self._diffrate_info["size"][:, :merge_kept_num],self._diffrate_info["size"][:, merge_kept_num:]*node_max[..., None] ),dim=1)
                 self._diffrate_info["size"] = merge(self._diffrate_info["size"], mode='sum')
+                if self._diffrate_info["trace_source"]:
+                    self._diffrate_info["source"] = merge(self._diffrate_info["source"], mode="amax")
 
             x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
@@ -176,6 +183,8 @@ def make_diffrate_class(transformer_class):
             self._diffrate_info["mask"] =  torch.ones((B,self.patch_embed.num_patches+1),device=x.device)
             self._diffrate_info["prune_kept_num"] = []
             self._diffrate_info["merge_kept_num"] = []
+            if self._diffrate_info["trace_source"]:
+                self._diffrate_info["source"] = torch.eye(self.patch_embed.num_patches+1, device=x.device)[None, ...].expand(B, self.patch_embed.num_patches+1, self.patch_embed.num_patches+1)
             x = super().forward(x)
             if return_flop:
                 if self.training:

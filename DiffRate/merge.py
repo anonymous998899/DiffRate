@@ -98,9 +98,5 @@ def merge_source(
     For source tracking. Source is an adjacency matrix between the initial tokens and final merged groups.
     x is used to find out how many tokens there are in case the source is None.
     """
-    if source is None:
-        n, t, _ = x.shape
-        source = torch.eye(t, device=x.device)[None, ...].expand(n, t, t)
-
     source = merge(source, mode="amax")
     return source

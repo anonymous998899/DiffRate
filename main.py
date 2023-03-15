@@ -283,8 +283,6 @@ def main(args):
     }
     if args.eval_with_compression_rate:
         with open('compression_rate.json', 'r') as f:
-        # with open('compression_rate_deit_t_to_s.json', 'r') as f:
-        # with open('compression_rate_deit_b_to_s.json', 'r') as f:
             compression_rate = json.load(f) 
             model_name = model_name_dict[args.model]
             if not str(args.target_flops) in compression_rate[model_name]:
