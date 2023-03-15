@@ -31,7 +31,7 @@ Our proposed DiffRate is designed to operate utilizing the officially endorsed p
 
 
 ## Evaluation
-We provide the discovered compression rates in the `compression_rate.json` file. To evaluate these rates, utilize the `--eval_with_compression_rate` option, which will load the appropriate compression rate from `compression_rate.json` based on the specified `model` and `target_flops`.
+We provide the discovered compression rates in the [compression_rate.json](https://github.com/anonymous998899/DiffRate/blob/main/compression_rate.json) file. To evaluate these rates, utilize the `--eval_with_compression_rate` option, which will load the appropriate compression rate from [compression_rate.json](https://github.com/anonymous998899/DiffRate/blob/main/compression_rate.json) based on the specified `model` and `target_flops`.
 
 - For the `ViT-S (DeiT)` model, we currently offer support for the `--target_flops` option with `{2.3,2.5,2.7,2.9,3.1}`. To illustrate, an example evaluating the `ViT-S (DeiT)` model with `2.9G` FLOPs would be:
 ```
@@ -106,4 +106,4 @@ python -m torch.distributed.launch \
 ```
 
 ## Visualization
-See `visualization.ipynb` for more details.
+See [visualization.ipynb](https://github.com/anonymous998899/DiffRate/blob/main/visualization.ipynb) for more details.
